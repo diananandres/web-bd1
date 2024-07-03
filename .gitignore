@@ -1,2 +1,3 @@
 backend/env/
 puntozip/node_modules
+backend/.env
