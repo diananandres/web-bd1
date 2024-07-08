@@ -10,8 +10,6 @@ function Menu() {
     { value: 'consulta1', label: 'Consulta 1' },
     { value: 'consulta2', label: 'Consulta 2' },
     { value: 'consulta3', label: 'Consulta 3' },
-    { value: 'consulta4', label: 'Consulta 4' },
-    { value: 'consulta5', label: 'Consulta 5' },
   ];
 
   const handleSelectChange = (selectedOption) => {
