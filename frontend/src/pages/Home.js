@@ -12,7 +12,7 @@ function Home() {
 
   return (
     <div className="h_container">
-      <p>Punto.Zip</p>
+      <p>PuntoZip</p>
       <button className="circle_button" onClick={handleButtonClick}>
         <i className="bi bi-arrow-right-circle-fill"></i>
       </button>
