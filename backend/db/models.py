@@ -13,7 +13,6 @@ from sqlalchemy import (
 
 from db.db_setup import Base
 
-from sqlalchemy.orm import relationship
 
 class Empleado(Base):
     __tablename__ = 'empleado'
@@ -70,7 +69,7 @@ class Deposito(Base):
     pago_codigo = Column(Integer, ForeignKey('pago.codigo'), primary_key=True, nullable=False)
     administrativo_dni = Column(String(8), ForeignKey('personal_administrativo.dni'), nullable=False)
     __table_args__ = (
-        UniqueConstraint('pago_codigo', name='codigo_dp_unique')
+        UniqueConstraint('pago_codigo', name='codigo_dp_unique'),
     )
 
 class Ubicacion(Base):
@@ -81,7 +80,7 @@ class Ubicacion(Base):
     pais = Column(String, nullable=False)
     codigo_postal = Column(String, nullable=False)
     __table_args__ = (
-        UniqueConstraint('codigo', name='codigo_ubi_unique')
+        UniqueConstraint('codigo', name='codigo_ubi_unique'),
     )
 
 class Cliente(Base):
@@ -91,7 +90,7 @@ class Cliente(Base):
     pais = Column(String, nullable=False)
     ubicacion_codigo = Column(Integer, ForeignKey('ubicacion.codigo'), nullable=False)
     __table_args__ = (
-        UniqueConstraint('rin', name='rin_cliente_unique')
+        UniqueConstraint('rin', name='rin_cliente_unique'),
     )
 
 class Pedido(Base):
@@ -117,7 +116,7 @@ class Empresa(Base):
     ubicacion_facturacion_codigo = Column(Integer, ForeignKey('ubicacion.codigo'), nullable=False)
     ubicacion_codigo = Column(Integer, ForeignKey('ubicacion.codigo'), nullable=False)
     __table_args__ = (
-        UniqueConstraint('ruc', name='ruc_empresa_unique')
+        UniqueConstraint('ruc', name='ruc_empresa_unique'),
     )
 
 class Etapa(Base):
@@ -128,7 +127,7 @@ class Etapa(Base):
     fecha_finalizacion = Column(Date)
     empresa_ruc = Column(String(11), ForeignKey('empresa.ruc'), nullable=False)
     __table_args__ = (
-        CheckConstraint("estado IN ('Compra hilo', 'Tejeduria', 'Tenido', 'Corte', 'Confeccion', 'Acabados', 'Listo para despacho', 'Despachado')", name='chk_etapa_estado')
+        CheckConstraint("estado IN ('Compra hilo', 'Tejeduria', 'Tenido', 'Corte', 'Confeccion', 'Acabados', 'Listo para despacho', 'Despachado')", name='chk_etapa_estado'),
     )
 
 class Trabaja(Base):
@@ -137,7 +136,7 @@ class Trabaja(Base):
     etapa_estado = Column(String(20), primary_key=True, nullable=False)
     trabajador_dni = Column(String(8), ForeignKey('trabajador_taller.dni'), primary_key=True, nullable=False)
     __table_args__ = (
-        ForeignKeyConstraint(['etapa_po', 'etapa_estado'], ['etapa.pedido_po', 'etapa.estado'], name='fk_tte_etapa')
+        ForeignKeyConstraint(['etapa_po', 'etapa_estado'], ['etapa.pedido_po', 'etapa.estado'], name='fk_tte_etapa'),
     )
 
 class GuiaDeRemision(Base):
@@ -181,7 +180,7 @@ class Prenda(Base):
     estilo = Column(String(20), primary_key=True, nullable=False)
     categoria = Column(String(10), nullable=False)
     __table_args__ = (
-        CheckConstraint("categoria IN ('Damas', 'Caballeros', 'Ninos')", name='chk_prenda_categoria')
+        CheckConstraint("categoria IN ('Damas', 'Caballeros', 'Ninos')", name='chk_prenda_categoria'),
     )
 
 class Polo(Base):
@@ -220,3 +219,4 @@ class Talla(Base):
         CheckConstraint("tamano IN ('XXS', 'XS', 'S','M','L','XL','XXL','3XL')", name='chk_tamano'),
         CheckConstraint("cantidad > 0", name='chk_cantidad')
     )
+

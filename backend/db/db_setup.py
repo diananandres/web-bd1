@@ -18,17 +18,26 @@ SQLALCHEMY_DATABASE_URL = 'postgresql+asyncpg://{}:{}@{}:{}/{}'.format(
     DATABASE_NAME
 )
 
-async_engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
+# async_engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
+
+Base = declarative_base()
+
+async_engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True, future=True)
+
 AsyncSessionLocal = sessionmaker(
     async_engine,
     class_=AsyncSession,
     expire_on_commit=False
 )
+# async def get_db():
+#     async with AsyncSessionLocal() as db:
+#         yield db
+#         await db.commit()
 
-Base = declarative_base()
+# async def get_session():
+#     async with AsyncSession(async_engine) as session:
+#         yield session
 
-async def get_db():
-    async with AsyncSessionLocal() as db:
-        yield db
-        await db.commit()
-
+async def get_session() -> AsyncSession:
+    async with AsyncSessionLocal() as session:
+        yield session
