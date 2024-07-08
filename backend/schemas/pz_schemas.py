@@ -12,7 +12,7 @@ class Consulta1Response(Consulta1):
     pass
 
 class Consulta2(BaseModel):
-    rin: str= Field(..., max_length=7)
+    rin: str = Field(..., max_length=7)
     cliente: str
     etapa: str = Field(..., max_length=20)
     pedido_po: str = Field(..., max_length=20)
@@ -22,10 +22,11 @@ class Consulta2Response(Consulta2):
     pass
 
 class Consulta3(BaseModel):
-    rin: str= Field(..., max_length=7)
+    rin: str = Field(..., max_length=7)
     cliente_nombre: str
     categoria: str = Field(..., max_length=10)
     frecuencia: int
 
 class Consulta3Response(Consulta3):
     pass
+

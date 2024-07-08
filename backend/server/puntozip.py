@@ -67,7 +67,6 @@ async def costos_laborales_ultimo_mes(
 @router.get("/etapa-mas-demorada-ultimo-mes",
             response_model=List[Consulta2Response]
             )
-
 async def etapa_mas_demorada_ultimo_mes(
     session: AsyncSession = Depends(get_session)
 ):
@@ -77,8 +76,8 @@ async def etapa_mas_demorada_ultimo_mes(
         fecha_inicio_mes_actual = fecha_fin_mes_actual.replace(day=1)
 
         query = text("""
-            SELECT c.rin, c.nombre  AS cliente, 
-                   e.estado  AS etapa, 
+            SELECT c.rin, c.nombre  AS cliente,
+                   e.estado  AS etapa,
                    p.po AS pedido_po,
                    (e.fecha_finalizacion - e.fecha_inicio) AS tiempo_etapa_dias
             FROM cliente c
@@ -97,7 +96,7 @@ async def etapa_mas_demorada_ultimo_mes(
         # print(result.fetchall())
         rows = result.fetchall()
         response_objects = [
-            Consulta2Response(rin=row[0], cliente=row[1], etapa=row[2], pedido_po=row[3] ,tiempo_etapa_dias=row[4])
+            Consulta2Response(rin=row[0], cliente=row[1], etapa=row[2], pedido_po=row[3], tiempo_etapa_dias=row[4])
             for row in rows
         ]
 
@@ -106,11 +105,10 @@ async def etapa_mas_demorada_ultimo_mes(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
 
- # consulta 3
+# consulta 3
 
 @router.get("/categorias-mas-solicitadas",
             response_model=List[Consulta3Response])
-
 async def categorias_mas_solicitadas(
     session: AsyncSession = Depends(get_session)
 ):
@@ -145,7 +143,7 @@ async def categorias_mas_solicitadas(
 
         result = await session.execute(query)
         rows = result.fetchall()
-        
+
         # print(result.fetchall())
         response_objects = [
             Consulta3Response(rin=row[0], cliente_nombre=row[1], categoria=row[2], frecuencia=row[3])
@@ -156,5 +154,5 @@ async def categorias_mas_solicitadas(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
-    
+
 
