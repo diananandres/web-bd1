@@ -10,7 +10,9 @@ from typing import List
 from datetime import date, timedelta
 
 from schemas.pz_schemas import (
-    Consulta1Response
+    Consulta1Response,
+    Consulta2Response,
+    Consulta3Response
 )
 
 router = fastapi.APIRouter()
@@ -62,54 +64,97 @@ async def costos_laborales_ultimo_mes(
 
 # consulta 2
 
-# @router.get("/etapa-mas-demorada-ultimo-mes")
-# async def etapa_mas_demorada_ultimo_mes(
-#     db: AsyncSession = Depends(get_db)
-# ):
-#     # Calcular fecha de inicio y fin del último mes
-#     fecha_fin_mes_actual = date.today().replace(day=1) - timedelta(days=1)
-#     fecha_inicio_mes_actual = fecha_fin_mes_actual.replace(day=1)
-#
-#     stmt = select(
-#         Cliente.rin,
-#         Cliente.nombre.label('cliente'),
-#         Etapa.estado.label('etapa'),
-#         Pedido.po.label('pedido_po'),
-#         (Etapa.fecha_finalizacion - Etapa.fecha_inicio).label('tiempo_etapa_dias')
-#     ).join(Pedido).join(Etapa).filter(
-#         Etapa.fecha_finalizacion.isnot(None),
-#         Etapa.fecha_finalizacion > Etapa.fecha_inicio,
-#         Etapa.fecha_finalizacion.between(fecha_inicio_mes_actual, fecha_fin_mes_actual)
-#     )
-#
-#     result = await db.execute(stmt)
-#     return await result.fetchall()
-#
-#
-# # consulta 3
-#
-# @router.get("/categorias-mas-solicitadas")
-# async def categorias_mas_solicitadas(
-#     db: AsyncSession = Depends(get_db)
-# ):
-#     stmt = select(
-#         Cliente.rin,
-#         Cliente.nombre.label('cliente_nombre'),
-#         Prenda.categoria,
-#         func.count(Prenda.categoria).label('frecuencia')
-#     ).join(Pedido).join(Prenda).group_by(
-#         Cliente.rin, Cliente.nombre, Prenda.categoria
-#     ).cte('categoria_frecuencia')
-#
-#     categoria_max_frecuencia = select(
-#         stmt.c.rin,
-#         stmt.c.cliente_nombre,
-#         stmt.c.categoria,
-#         stmt.c.frecuencia,
-#         func.rank().over(partition_by=stmt.c.rin, order_by=stmt.c.frecuencia.desc()).label('rk')
-#     ).select_from(stmt).where(stmt.c.rk == 1).order_by(stmt.c.frecuencia.desc())
-#
-#     result = await db.execute(categoria_max_frecuencia)
-#     return await result.fetchall()
-#
-# #post
+@router.get("/etapa-mas-demorada-ultimo-mes",
+            response_model=List[Consulta2Response]
+            )
+
+async def etapa_mas_demorada_ultimo_mes(
+    session: AsyncSession = Depends(get_session)
+):
+    try:
+        # Calcular fecha de inicio y fin del último mes
+        fecha_fin_mes_actual = date.today().replace(day=1) - timedelta(days=1)
+        fecha_inicio_mes_actual = fecha_fin_mes_actual.replace(day=1)
+
+        query = text("""
+            SELECT c.rin, c.nombre  AS cliente, 
+                   e.estado  AS etapa, 
+                   p.po AS pedido_po,
+                   (e.fecha_finalizacion - e.fecha_inicio) AS tiempo_etapa_dias
+            FROM cliente c
+                JOIN pedido p ON c.rin = p.cliente_rin
+                JOIN etapa e ON p.po = e.pedido_po
+            WHERE e.fecha_finalizacion IS NOT NULL
+                AND e.fecha_finalizacion > e.fecha_inicio
+                AND e.fecha_finalizacion BETWEEN :fecha_inicio AND :fecha_fin;
+        """)
+
+        result = await session.execute(query, {
+            "fecha_inicio": fecha_inicio_mes_actual,
+            "fecha_fin": fecha_fin_mes_actual
+        })
+
+        # print(result.fetchall())
+        rows = result.fetchall()
+        response_objects = [
+            Consulta2Response(rin=row[0], cliente=row[1], etapa=row[2], pedido_po=row[3] ,tiempo_etapa_dias=row[4])
+            for row in rows
+        ]
+
+        return response_objects
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
+
+ # consulta 3
+
+@router.get("/categorias-mas-solicitadas",
+            response_model=List[Consulta3Response])
+
+async def categorias_mas_solicitadas(
+    session: AsyncSession = Depends(get_session)
+):
+    try:
+        query = text("""
+            WITH categoria_frecuencia AS (
+                SELECT c.rin,
+                       c.nombre AS cliente_nombre,
+                       pr.categoria,
+                       COUNT(pr.categoria) AS frecuencia
+                FROM cliente c
+                    JOIN pedido p ON c.rin = p.cliente_rin
+                    JOIN prenda pr ON p.po = pr.pedido_po
+                GROUP BY c.rin, c.nombre, pr.categoria
+            ),
+            categoria_max_frecuencia AS (
+                SELECT rin,
+                       cliente_nombre,
+                       categoria,
+                       frecuencia,
+                       RANK() OVER (PARTITION BY rin ORDER BY frecuencia DESC) AS rk
+                FROM categoria_frecuencia
+            )
+            SELECT rin,
+                   cliente_nombre,
+                   categoria,
+                   frecuencia
+            FROM categoria_max_frecuencia
+                WHERE rk = 1
+            ORDER BY frecuencia DESC;
+        """)
+
+        result = await session.execute(query)
+        rows = result.fetchall()
+        
+        # print(result.fetchall())
+        response_objects = [
+            Consulta3Response(rin=row[0], cliente_nombre=row[1], categoria=row[2], frecuencia=row[3])
+            for row in rows
+        ]
+
+        return response_objects
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
+    
+
